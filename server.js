@@ -45,18 +45,27 @@ let taskPreferencesStore = {};
 let workerPreferencesStore = {};
 let workerInterestStore = {}; // Worker -> [Task IDs worker expressed interest in]
 
-app.use('/api', (req, res, next) => {
-    if (req.path === '/config') return next();
-    if (!supabase) {
-        return res.status(500).json({ 
-            error: "Supabase credentials are not configured in environment variables (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)." 
-        });
+// Normalize API paths for Vercel
+app.use((req, res, next) => {
+    if (req.url && !req.url.startsWith('/api') && req.url !== '/' && !req.url.startsWith('/demo') && !req.url.endsWith('.html') && !req.url.endsWith('.css') && !req.url.endsWith('.js')) {
+        req.url = '/api' + (req.url.startsWith('/') ? req.url : '/' + req.url);
     }
     next();
 });
 
-app.get('/api/config', (req, res) => {
+// Public config endpoint (never blocked by Supabase check)
+app.get(['/api/config', '/config'], (req, res) => {
     res.json({ SUPABASE_URL: supabaseUrl || '', SUPABASE_ANON_KEY: anonKey || '' });
+});
+
+app.use('/api', (req, res, next) => {
+    if (req.path === '/config' || req.path === '/api/config') return next();
+    if (!supabase) {
+        return res.status(500).json({ 
+            error: "Supabase credentials are not configured in environment variables (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY). Please add them to your Vercel Dashboard." 
+        });
+    }
+    next();
 });
 
 app.post('/api/auth/register', async (req, res) => {

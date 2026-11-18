@@ -139,11 +139,19 @@ function randomizeWorkerInputs() {
 async function initializeApp() {
     try {
         const response = await fetch(API_URL + '/api/config');
-        if (!response.ok) throw new Error('Config fetch failed');
+        if (!response.ok) {
+            let errorMsg = `Server returned HTTP ${response.status}`;
+            try {
+                const errData = await response.json();
+                if (errData && errData.error) errorMsg = errData.error;
+            } catch(e) {}
+            authError.textContent = errorMsg;
+            return;
+        }
         const config = await response.json();
         
         if (!config.SUPABASE_URL || !config.SUPABASE_ANON_KEY) {
-            authError.textContent = "Supabase credentials are not configured. Please set SUPABASE_URL and SUPABASE_KEY in your environment variables.";
+            authError.textContent = "Supabase credentials are not configured in Vercel. Please set SUPABASE_URL and SUPABASE_KEY in your Vercel Project Settings (Environment Variables).";
             return;
         }
 
@@ -152,7 +160,7 @@ async function initializeApp() {
             if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') checkUserAndRoute();
         });
     } catch(e) {
-        authError.textContent = "Cannot connect to server API. Check that your deployment or server is running.";
+        authError.textContent = `API Connection Error (${e.message}). Check that your Vercel deployment is active.`;
     }
 }
 initializeApp();
