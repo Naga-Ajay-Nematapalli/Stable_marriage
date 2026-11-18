@@ -1,4 +1,5 @@
 const path = require('path');
+const fs = require('fs');
 require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 const express = require('express');
 const cors = require('cors');
@@ -9,6 +10,23 @@ app.set('trust proxy', 1);
 app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.get('/', (req, res) => {
+    const publicIndex = path.join(__dirname, 'public', 'index.html');
+    const rootIndex = path.join(__dirname, 'index.html');
+    if (fs.existsSync(publicIndex)) return res.sendFile(publicIndex);
+    if (fs.existsSync(rootIndex)) return res.sendFile(rootIndex);
+    res.sendFile(path.resolve('index.html'));
+});
+
+app.get('/demo.html', (req, res) => {
+    const publicDemo = path.join(__dirname, 'public', 'demo.html');
+    const rootDemo = path.join(__dirname, 'demo.html');
+    if (fs.existsSync(publicDemo)) return res.sendFile(publicDemo);
+    if (fs.existsSync(rootDemo)) return res.sendFile(rootDemo);
+    res.sendFile(path.resolve('demo.html'));
+});
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;

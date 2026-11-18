@@ -8,9 +8,5 @@ module.exports = (req, res) => {
         const queryString = queryIndex !== -1 ? req.url.slice(queryIndex) : '';
         req.url = matchedPath.includes('?') ? matchedPath : (matchedPath + queryString);
     }
-    // If path reached serverless function without /api prefix, normalize it
-    if (req.url && !req.url.startsWith('/api')) {
-        req.url = '/api' + (req.url.startsWith('/') ? req.url : '/' + req.url);
-    }
     return app(req, res);
 };
