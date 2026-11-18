@@ -4,6 +4,7 @@
   "description": "Backend for Spatial Crowdsourcing Simulation",
   "main": "server.js",
   "scripts": {
+    "build": "echo Build complete",
     "start": "node server.js"
   },
   "engines": {

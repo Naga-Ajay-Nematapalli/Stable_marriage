@@ -1,12 +1,16 @@
 const app = require('../server');
 
 module.exports = (req, res) => {
-    // If Vercel rewrote req.url to function path, recover the actual path and query parameters
+    // If Vercel rewrote req.url to the function entry path, recover the intended path
     const matchedPath = req.headers['x-matched-path'];
-    if (matchedPath && (req.url.startsWith('/api/index.js') || req.url.startsWith('/api/index') || req.url === '/api')) {
+    if (matchedPath && (req.url.startsWith('/api/index') || req.url === '/api')) {
         const queryIndex = req.url.indexOf('?');
         const queryString = queryIndex !== -1 ? req.url.slice(queryIndex) : '';
-        req.url = (matchedPath.includes('?') ? matchedPath : matchedPath + queryString);
+        req.url = matchedPath.includes('?') ? matchedPath : (matchedPath + queryString);
+    }
+    // If path reached serverless function without /api prefix, normalize it
+    if (req.url && !req.url.startsWith('/api')) {
+        req.url = '/api' + (req.url.startsWith('/') ? req.url : '/' + req.url);
     }
     return app(req, res);
 };
